@@ -179,7 +179,7 @@ class HtmlEditorState extends State<HtmlEditor> {
                             .replaceAll('\r\n', " ");
                         String txt =
                             "\$('.note-editable').append( '" + txtIsi + "');";
-                        _controller.evaluateJavascript(txt);
+                        _evaluateJavascript(txt);
                       }),
                     ],
                   ),
@@ -210,13 +210,8 @@ class HtmlEditorState extends State<HtmlEditor> {
   }
 
   Future<String> getText() async {
-    if (Platform.isIOS) {
-      await _controller.evaluateJavascript(
-          "setTimeout(function(){GetTextSummernote.postMessage(document.getElementsByClassName('note-editable')[0].innerHTML)}, 0);");
-    } else {
-      await _controller.evaluateJavascript(
-          "GetTextSummernote.postMessage(document.getElementsByClassName('note-editable')[0].innerHTML);");
-    }
+    await _evaluateJavascript(
+        "GetTextSummernote.postMessage(document.getElementsByClassName('note-editable')[0].innerHTML);");
     return text;
   }
 
@@ -234,29 +229,30 @@ class HtmlEditorState extends State<HtmlEditor> {
         "document.getElementsByClassName('note-editable')[0].innerHTML = '" +
             txtIsi +
             "';";
-    _controller.evaluateJavascript(txt);
+    _evaluateJavascript(txt);
   }
 
   setFullContainer() {
-    _controller.evaluateJavascript(
-        '\$("#summernote").summernote("fullscreen.toggle");');
+    _evaluateJavascript('\$("#summernote").summernote("fullscreen.toggle");');
   }
 
   setFocus() {
-    _controller.evaluateJavascript("\$('#summernote').summernote('focus');");
+    _evaluateJavascript("\$('#summernote').summernote('focus');");
   }
 
   setEmpty() {
-    _controller.evaluateJavascript("\$('#summernote').summernote('reset');");
+    _evaluateJavascript("\$('#summernote').summernote('reset');");
   }
 
   setHint(String text) {
     String hint = '\$(".note-placeholder").html("$text");';
-    if (Platform.isIOS) {
-      _controller.evaluateJavascript("setTimeout(function(){$hint}, 0);");
-    } else {
-      _controller.evaluateJavascript(hint);
-    }
+    _evaluateJavascript(hint);
+  }
+
+  Future<void> _evaluateJavascript(String javaScriptString) async {
+    await _controller
+        .evaluateJavascript(javaScriptString + (Platform.isIOS ? '123;' : ''));
+    return;
   }
 
   Widget widgetIcon(IconData icon, String title, {OnClik onKlik}) {
@@ -312,7 +308,7 @@ class HtmlEditorState extends State<HtmlEditor> {
 
                     String txt =
                         "\$('.note-editable').append( '" + base64Image + "');";
-                    _controller.evaluateJavascript(txt);
+                    _evaluateJavascript(txt);
                   }),
             ),
           );
@@ -340,7 +336,7 @@ class HtmlEditorState extends State<HtmlEditor> {
                     "${base64Encode(imageBytes)}\" data-filename=\"$filename\">";
                 String txt =
                     "\$('.note-editable').append( '" + base64Image + "');";
-                _controller.evaluateJavascript(txt);
+                _evaluateJavascript(txt);
               }),
             ));
           });
