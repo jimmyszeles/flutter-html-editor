@@ -7,9 +7,10 @@ import 'package:image_picker/image_picker.dart';
  */
 
 typedef void CallbackValue(dynamic value);
+
 class PickImage extends StatelessWidget {
-  final CallbackValue callbackFile;
-  final Color color;
+  final CallbackValue? callbackFile;
+  final Color? color;
 
   PickImage({this.callbackFile, this.color});
 
@@ -30,8 +31,11 @@ class PickImage extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: 80,
-                    child: FlatButton(
-                      padding: const EdgeInsets.all(10),
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.all(10),
+                        backgroundColor: Colors.white,
+                      ),
                       onPressed: () {
                         getImage(true);
                         Navigator.pop(context);
@@ -48,18 +52,20 @@ class PickImage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            "Camera",
+                            'Camera',
                             style: TextStyle(color: color ?? Colors.black45),
                           ),
                         ],
                       ),
-                      color: Colors.white,
                     ),
                   ),
                   SizedBox(
                     width: 80,
-                    child: FlatButton(
-                      padding: const EdgeInsets.all(10),
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.all(10),
+                        backgroundColor: Colors.white,
+                      ),
                       onPressed: () {
                         getImage(false);
                         Navigator.pop(context);
@@ -76,12 +82,11 @@ class PickImage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            "Gallery",
+                            'Gallery',
                             style: TextStyle(color: color ?? Colors.black45),
                           ),
                         ],
                       ),
-                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -93,15 +98,15 @@ class PickImage extends StatelessWidget {
     );
   }
 
-  Future getImage(bool isKamera) async {
-    var image = await ImagePicker.pickImage(
-      source: isKamera ? ImageSource.camera : ImageSource.gallery,
+  Future getImage(bool isCamera) async {
+    var image = await ImagePicker().getImage(
+      source: isCamera ? ImageSource.camera : ImageSource.gallery,
       maxWidth: 800.0,
       maxHeight: 600.0,
     );
 
     if (image != null) {
-      callbackFile(image);
+      callbackFile!(image);
     }
   }
 }

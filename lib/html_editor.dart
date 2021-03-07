@@ -12,24 +12,22 @@ import 'package:html_editor/pick_image.dart';
 import 'package:path/path.dart' as p;
 import 'package:webview_flutter/webview_flutter.dart';
 
-/*
- * Created by riyadi rb on 2/5/2020.
- * link  : https://github.com/xrb21/flutter-html-editor
- */
+/// Created by riyadi rb on 2/5/2020.
+/// link  : https://github.com/xrb21/flutter-html-editor
 
-typedef void OnClik();
+typedef void OnClick();
 
 class HtmlEditor extends StatefulWidget {
-  final String value;
+  final String? value;
   final double height;
-  final BoxDecoration decoration;
+  final BoxDecoration? decoration;
   final bool useBottomSheet;
   final String widthImage;
   final bool showBottomToolbar;
-  final String hint;
+  final String? hint;
 
   HtmlEditor(
-      {Key key,
+      {Key? key,
       this.value,
       this.height = 380,
       this.decoration,
@@ -44,12 +42,12 @@ class HtmlEditor extends StatefulWidget {
 }
 
 class HtmlEditorState extends State<HtmlEditor> {
-  WebViewController _controller;
+  WebViewController? _controller;
   String text = "";
   final Key _mapKey = UniqueKey();
 
   int port = 5321;
-  LocalServer localServer;
+  late LocalServer localServer;
 
   @override
   void initState() {
@@ -87,7 +85,7 @@ class HtmlEditorState extends State<HtmlEditor> {
 
   _loadHtmlFromAssets() async {
     final filePath = 'packages/html_editor/summernote/summernote.html';
-    _controller.loadUrl("http://localhost:$port/$filePath");
+    _controller!.loadUrl("http://localhost:$port/$filePath");
   }
 
   @override
@@ -113,7 +111,7 @@ class HtmlEditorState extends State<HtmlEditor> {
                 if (Platform.isAndroid) {
                   final filename =
                       'packages/html_editor/summernote/summernote.html';
-                  _controller.loadUrl(
+                  _controller!.loadUrl(
                       "file:///android_asset/flutter_assets/" + filename);
                 } else {
                   _loadHtmlFromAssets();
@@ -137,7 +135,7 @@ class HtmlEditorState extends State<HtmlEditor> {
 
                 setFullContainer();
                 if (widget.value != null) {
-                  setText(widget.value);
+                  setText(widget.value!);
                 }
               },
             ),
@@ -165,18 +163,19 @@ class HtmlEditorState extends State<HtmlEditor> {
                       }),
                       widgetIcon(Icons.content_paste, "Paste",
                           onKlik: () async {
-                        ClipboardData data =
+                        ClipboardData? data =
                             await Clipboard.getData(Clipboard.kTextPlain);
 
-                        String txtIsi = data.text
-                            .replaceAll("'", '\\"')
-                            .replaceAll('"', '\\"')
-                            .replaceAll("[", "\\[")
-                            .replaceAll("]", "\\]")
-                            .replaceAll("\n", "<br/>")
-                            .replaceAll("\n\n", "<br/>")
-                            .replaceAll("\r", " ")
-                            .replaceAll('\r\n', " ");
+                        String txtIsi = data?.text!
+                                .replaceAll("'", '\\"')
+                                .replaceAll('"', '\\"')
+                                .replaceAll("[", "\\[")
+                                .replaceAll("]", "\\]")
+                                .replaceAll("\n", "<br/>")
+                                .replaceAll("\n\n", "<br/>")
+                                .replaceAll("\r", " ")
+                                .replaceAll('\r\n', " ") ??
+                            '';
                         String txt =
                             "\$('.note-editable').append( '" + txtIsi + "');";
                         _evaluateJavascript(txt);
@@ -244,21 +243,21 @@ class HtmlEditorState extends State<HtmlEditor> {
     _evaluateJavascript("\$('#summernote').summernote('reset');");
   }
 
-  setHint(String text) {
+  setHint(String? text) {
     String hint = '\$(".note-placeholder").html("$text");';
     _evaluateJavascript(hint);
   }
 
   Future<void> _evaluateJavascript(String javaScriptString) async {
-    await _controller
+    await _controller!
         .evaluateJavascript(javaScriptString + (Platform.isIOS ? '123;' : ''));
     return;
   }
 
-  Widget widgetIcon(IconData icon, String title, {OnClik onKlik}) {
+  Widget widgetIcon(IconData icon, String title, {OnClick? onKlik}) {
     return InkWell(
       onTap: () {
-        onKlik();
+        onKlik!();
       },
       child: Row(
         children: <Widget>[

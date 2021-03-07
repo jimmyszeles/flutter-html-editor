@@ -9,7 +9,7 @@ import 'package:mime/mime.dart';
  */
 
 class LocalServer {
-  HttpServer server;
+  HttpServer? server;
   final int port;
 
   LocalServer(this.port);
@@ -17,7 +17,7 @@ class LocalServer {
   ///Closes the server.
   Future<void> close() async {
     if (this.server != null) {
-      await this.server.close(force: true);
+      await this.server!.close(force: true);
       this.server = null;
     }
   }
@@ -29,13 +29,13 @@ class LocalServer {
     }
 
     var completer = new Completer();
-    runZoned(() {
+    runZonedGuarded(() {
       HttpServer.bind('localhost', port, shared: true).then((server) {
         this.server = server;
 
         server.listen((HttpRequest httpRequest) async {
           request(httpRequest);
-          var body = List<int>();
+          var body = <int>[];
           var path = httpRequest.requestedUri.path;
           path = (path.startsWith('/')) ? path.substring(1) : path;
           path += (path.endsWith('/')) ? 'index.html' : '';
@@ -65,13 +65,13 @@ class LocalServer {
         });
         completer.complete();
       });
-    }, onError: (e, stackTrace) => print('Error: $e $stackTrace'));
+    }, (e, stackTrace) => print('Error: $e $stackTrace'));
     return completer.future;
   }
 }
 
 class WebSocketServer {
-  HttpServer server;
+  HttpServer? server;
 
   final int port;
 
@@ -80,7 +80,7 @@ class WebSocketServer {
   ///Closes the server.
   Future<void> close() async {
     if (this.server != null) {
-      await this.server.close(force: true);
+      await this.server!.close(force: true);
       this.server = null;
     }
   }
@@ -91,7 +91,7 @@ class WebSocketServer {
       throw Exception('Server already started on http://localhost:$port');
     }
     var completer = new Completer();
-    runZoned(() {
+    runZonedGuarded(() {
       HttpServer.bind('localhost', port, shared: true).then(
           (HttpServer server) {
         print('[+]WebSocket listening at -- ws://localhost:$port/');
@@ -101,7 +101,7 @@ class WebSocketServer {
             ws.listen(
               (data) {
                 print(
-                    '\t\t${request?.connectionInfo?.remoteAddress} -- ${data.toString()}');
+                    '\t\t${request.connectionInfo?.remoteAddress} -- ${data.toString()}');
                 Timer(Duration(seconds: 1), () {
                   if (ws.readyState == WebSocket.open)
                     // checking connection state helps to avoid unprecedented errors
@@ -117,7 +117,7 @@ class WebSocketServer {
         }, onError: (err) => print('[!]Error -- ${err.toString()}'));
         completer.complete();
       }, onError: (err) => print('[!]Error -- ${err.toString()}'));
-    }, onError: (err) => print('[!]Error -- ${err.toString()}'));
+    }, (err, s) => print('[!]Error -- ${err.toString()}'));
 
     return completer.future;
   }

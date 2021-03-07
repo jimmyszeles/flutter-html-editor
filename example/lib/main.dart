@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:html_editor/html_editor.dart';
 
-/**
- * Created by riyadi rb on 2/5/2020.
- * link  : https://github.com/xrb21/flutter-html-editor
- */
+/// Created by riyadi rb on 2/5/2020.
+/// link  : https://github.com/xrb21/flutter-html-editor
 
 void main() => runApp(MyApp());
 
@@ -23,7 +21,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
   final String title;
 
   @override
@@ -59,25 +57,36 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    FlatButton(
-                      color: Colors.blueGrey,
-                      onPressed: (){
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.blueGrey,
+                      ),
+                      onPressed: () {
                         setState(() {
-                          keyEditor.currentState.setEmpty();
+                          keyEditor.currentState?.setEmpty();
                         });
                       },
-                      child: Text("Reset", style: TextStyle(color: Colors.white)),
+                      child:
+                          Text("Reset", style: TextStyle(color: Colors.white)),
                     ),
-                    SizedBox(width: 16,),
-                    FlatButton(
-                      color: Colors.blue,
+                    SizedBox(
+                      width: 16,
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                      ),
                       onPressed: () async {
-                        final txt = await keyEditor.currentState.getText();
+                        final txt =
+                            await keyEditor.currentState?.getText() ?? '';
                         setState(() {
                           result = txt;
                         });
                       },
-                      child: Text("Submit", style: TextStyle(color: Colors.white),),
+                      child: Text(
+                        "Submit",
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ],
                 ),
