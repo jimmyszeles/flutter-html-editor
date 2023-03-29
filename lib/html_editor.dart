@@ -42,7 +42,7 @@ class HtmlEditor extends StatefulWidget {
 }
 
 class HtmlEditorState extends State<HtmlEditor> {
-  WebViewController? _controller;
+  late final WebViewController _controller;
   String text = "";
   final Key _mapKey = UniqueKey();
 
@@ -54,6 +54,47 @@ class HtmlEditorState extends State<HtmlEditor> {
     if (!Platform.isAndroid) {
       initServer();
     }
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(NavigationDelegate(
+        onWebResourceError: (WebResourceError error) {
+          print(
+              "onWebResourceError: ${error.errorCode} - ${error.description}");
+        },
+        onPageFinished: (String url) {
+          if (widget.hint != null) {
+            setHint(widget.hint);
+          } else {
+            setHint("");
+          }
+
+          setFullContainer();
+          if (widget.value != null) {
+            setText(widget.value!);
+          }
+        },
+      ))
+      ..addJavaScriptChannel('GetTextSummernote',
+          onMessageReceived: (JavaScriptMessage message) {
+        String isi = message.message;
+        if (isi.isEmpty ||
+            isi == "<p></p>" ||
+            isi == "<p><br></p>" ||
+            isi == "<p><br/></p>") {
+          isi = "";
+        }
+        setState(() {
+          text = isi;
+        });
+      });
+
+    if (Platform.isAndroid) {
+      final filename = 'packages/html_editor/summernote/summernote.html';
+      _controller.loadFile("file:///android_asset/flutter_assets/" + filename);
+    } else {
+      _loadHtmlFromAssets();
+    }
+
     super.initState();
   }
 
@@ -74,9 +115,6 @@ class HtmlEditorState extends State<HtmlEditor> {
 
   @override
   void dispose() {
-    if (_controller != null) {
-      _controller = null;
-    }
     if (!Platform.isAndroid) {
       localServer.close();
     }
@@ -85,7 +123,7 @@ class HtmlEditorState extends State<HtmlEditor> {
 
   _loadHtmlFromAssets() async {
     final filePath = 'packages/html_editor/summernote/summernote.html';
-    _controller!.loadUrl("http://localhost:$port/$filePath");
+    _controller.loadRequest(Uri.parse("http://localhost:$port/$filePath"));
   }
 
   @override
@@ -100,44 +138,26 @@ class HtmlEditorState extends State<HtmlEditor> {
       child: Column(
         children: <Widget>[
           Expanded(
-            child: WebView(
+            child: WebViewWidget(
               key: _mapKey,
-              onWebResourceError: (e) {
-                print("error ${e.description}");
-              },
-              onWebViewCreated: (webViewController) {
-                _controller = webViewController;
-
-                if (Platform.isAndroid) {
-                  final filename =
-                      'packages/html_editor/summernote/summernote.html';
-                  _controller!.loadUrl(
-                      "file:///android_asset/flutter_assets/" + filename);
-                } else {
-                  _loadHtmlFromAssets();
-                }
-              },
-              javascriptMode: JavascriptMode.unrestricted,
-              gestureNavigationEnabled: true,
+              controller: _controller,
               gestureRecognizers: [
                 Factory(
                     () => VerticalDragGestureRecognizer()..onUpdate = (_) {}),
               ].toSet(),
-              javascriptChannels: <JavascriptChannel>[
-                getTextJavascriptChannel(context)
-              ].toSet(),
-              onPageFinished: (String url) {
-                if (widget.hint != null) {
-                  setHint(widget.hint);
-                } else {
-                  setHint("");
-                }
-
-                setFullContainer();
-                if (widget.value != null) {
-                  setText(widget.value!);
-                }
-              },
+              // onWebViewCreated: (webViewController) {
+              //   _controller = webViewController;
+              //
+              //   if (Platform.isAndroid) {
+              //     final filename =
+              //         'packages/html_editor/summernote/summernote.html';
+              //     _controller!.loadUrl(
+              //         "file:///android_asset/flutter_assets/" + filename);
+              //   } else {
+              //     _loadHtmlFromAssets();
+              //   }
+              // },
+              // gestureNavigationEnabled: true,
             ),
           ),
           widget.showBottomToolbar
@@ -152,17 +172,17 @@ class HtmlEditorState extends State<HtmlEditor> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
-                      widgetIcon(Icons.image, "Image", onKlik: () {
+                      widgetIcon(Icons.image, "Image", onClick: () {
                         widget.useBottomSheet
                             ? bottomSheetPickImage(context)
                             : dialogPickImage(context);
                       }),
-                      widgetIcon(Icons.content_copy, "Copy", onKlik: () async {
+                      widgetIcon(Icons.content_copy, "Copy", onClick: () async {
                         String data = await getText();
                         Clipboard.setData(new ClipboardData(text: data));
                       }),
                       widgetIcon(Icons.content_paste, "Paste",
-                          onKlik: () async {
+                          onClick: () async {
                         ClipboardData? data =
                             await Clipboard.getData(Clipboard.kTextPlain);
 
@@ -189,23 +209,6 @@ class HtmlEditorState extends State<HtmlEditor> {
         ],
       ),
     );
-  }
-
-  JavascriptChannel getTextJavascriptChannel(BuildContext context) {
-    return JavascriptChannel(
-        name: 'GetTextSummernote',
-        onMessageReceived: (JavascriptMessage message) {
-          String isi = message.message;
-          if (isi.isEmpty ||
-              isi == "<p></p>" ||
-              isi == "<p><br></p>" ||
-              isi == "<p><br/></p>") {
-            isi = "";
-          }
-          setState(() {
-            text = isi;
-          });
-        });
   }
 
   Future<String> getText() async {
@@ -249,15 +252,15 @@ class HtmlEditorState extends State<HtmlEditor> {
   }
 
   Future<void> _evaluateJavascript(String javaScriptString) async {
-    await _controller!
-        .evaluateJavascript(javaScriptString + (Platform.isIOS ? '123;' : ''));
+    await _controller
+        .runJavaScript(javaScriptString + (Platform.isIOS ? '123;' : ''));
     return;
   }
 
-  Widget widgetIcon(IconData icon, String title, {OnClick? onKlik}) {
+  Widget widgetIcon(IconData icon, String title, {OnClick? onClick}) {
     return InkWell(
       onTap: () {
-        onKlik!();
+        onClick!();
       },
       child: Row(
         children: <Widget>[
@@ -322,7 +325,7 @@ class HtmlEditorState extends State<HtmlEditor> {
         backgroundColor: Colors.white,
         context: context,
         builder: (BuildContext bc) {
-          return StatefulBuilder(builder: (BuildContext context, setStatex) {
+          return StatefulBuilder(builder: (BuildContext context, setState) {
             return SingleChildScrollView(
                 child: Container(
               height: 140,

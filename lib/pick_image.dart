@@ -99,7 +99,7 @@ class PickImage extends StatelessWidget {
   }
 
   Future getImage(bool isCamera) async {
-    var image = await ImagePicker().getImage(
+    var image = await ImagePicker().pickImage(
       source: isCamera ? ImageSource.camera : ImageSource.gallery,
       maxWidth: 800.0,
       maxHeight: 600.0,
