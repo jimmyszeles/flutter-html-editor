@@ -1,6 +1,6 @@
 name: html_editor
 description: Flutter HTML Editor is a text editor for android and iOS to help write WYSIWYG HTML code based on the Summernote javascript wrapper
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/xrb21/flutter-html-editor.git
 
 environment:
@@ -9,10 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: ^4.9.0
+  webview_flutter: ^4.13.0
   image_picker: ^1.1.2
-  path: ^1.9.0
-  mime: ^1.0.6
+  path: ^1.9.1
+  mime: ^2.0.0
 
 dev_dependencies:
   flutter_test:
